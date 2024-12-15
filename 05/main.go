@@ -72,7 +72,7 @@ func main() {
 	fmt.Printf("reverse: %+v\n", reverse)
 	fmt.Printf("pages: %+v\n", pages)
 
-	sum := 0
+	sum, fixedSum := 0, 0
 	for _, page := range pages {
 		valid := true
 		for i := 1; i < len(page); i++ {
@@ -105,8 +105,53 @@ func main() {
 			fmt.Printf("%+v is valid!\n", page)
 			middle := int(math.Ceil(float64(len(page) / 2)))
 			sum += page[middle]
+			continue
 		}
+		fixed := tryAndFix(forward, reverse, page)
+		middle := int(math.Ceil(float64(len(fixed) / 2)))
+		fixedSum += fixed[middle]
 	}
 
 	fmt.Printf("Sum: %d\n", sum)
+	fmt.Printf("Fixed Sum: %d\n", fixedSum)
+}
+
+func tryAndFix(forward, reverse map[int][]int, page []int) []int {
+	changed := true
+	for changed {
+		changed = false
+	whole:
+		for i := 1; i < len(page); i++ {
+			for j := 0; j < i; j++ {
+				checking, current := page[j], page[i]
+				if _, exists := forward[current]; !exists {
+					if _, exists := reverse[current]; !exists {
+						continue
+					}
+				}
+				if slices.Contains(forward[current], checking) {
+					fmt.Printf("%+v is invalid, since %d came before %d\n", page, checking, current)
+					page[j], page[i] = current, checking
+					changed = true
+					break whole
+				}
+			}
+			for j := i + 1; j < len(page); j++ {
+				checking, current := page[j], page[i]
+				if _, exists := forward[current]; !exists {
+					if _, exists := reverse[current]; !exists {
+						continue
+					}
+				}
+				if slices.Contains(reverse[current], checking) {
+					fmt.Printf("%+v is invalid, since %d came before %d\n", page, checking, current)
+					page[j], page[i] = current, checking
+					changed = true
+					break whole
+				}
+			}
+		}
+	}
+	fmt.Printf("%+v is valid!\n", page)
+	return page
 }
