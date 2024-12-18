@@ -64,7 +64,7 @@ func main() {
 	fmt.Printf("Sum: %d\n", sum)
 }
 
-const base int = 2
+const base int = 3
 
 func checkForTotal(total int, nums []int) bool {
 	// fmt.Printf("CheckForTotal: %d, %+v\n", total, nums)
