@@ -64,12 +64,14 @@ func main() {
 	fmt.Printf("Sum: %d\n", sum)
 }
 
+const base int = 2
+
 func checkForTotal(total int, nums []int) bool {
 	// fmt.Printf("CheckForTotal: %d, %+v\n", total, nums)
 	bits := len(nums) - 1
-	for x := 0; x < int(math.Pow(3, float64(bits))); x++ {
+	for x := 0; x < int(math.Pow(float64(base), float64(bits))); x++ {
 		// fmt.Printf("x: %d\n", x)
-		x_3 := strconv.FormatInt(int64(x), 3)
+		x_3 := strconv.FormatInt(int64(x), base)
 		for len(x_3) < bits {
 			x_3 = "0" + x_3
 		}
