@@ -6,6 +6,7 @@ import (
 	"math"
 	"os"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -49,6 +50,8 @@ func main() {
 	input = strings.TrimSpace(input)
 
 	world := map[int]int{}
+	fileStarts := map[int]int{}
+	fileSizes := map[int]int{}
 	index := 0
 	pointer := 0
 	for _, line := range strings.Split(input, "\n") {
@@ -56,6 +59,8 @@ func main() {
 		for _, c := range strings.Split(line, "") {
 			n := toInt(c)
 			if file {
+				fileStarts[index] = pointer
+				fileSizes[index] = n
 				end := pointer + n
 				for pointer < end {
 					world[pointer] = index
@@ -69,42 +74,66 @@ func main() {
 		}
 	}
 
+	max := pointer
+	lastFile := index - 1
+
+	findFree := func() map[int]int {
+		m := map[int]int{}
+		i := 0
+		free := false
+		start := 0
+		space := 0
+		for ; i < max; i++ {
+			if _, ok := world[i]; ok {
+				if free {
+					m[start] = space
+					start = -1
+					space = 0
+				}
+				free = false
+			} else {
+				if !free {
+					start = i
+				}
+				free = true
+				space++
+			}
+		}
+		return m
+	}
+
 	// fmt.Printf("%+v\n", world)
+	// fmt.Printf("Free: %+v\n", findFree())
 
-	for {
-		if _, ok := world[pointer]; !ok {
-			pointer--
-		} else {
-			break
+	for index = lastFile; index >= 0; index-- {
+		fileLoc := fileStarts[index]
+		// Count the file
+		size := fileSizes[index]
+		// fmt.Printf("looking at file %d, size %d\n", index, size)
+
+		freeSpace := findFree()
+		locs := make([]int, 0, len(freeSpace))
+		for k := range freeSpace {
+			locs = append(locs, k)
 		}
-	}
+		slices.Sort(locs)
+		// fmt.Printf("available space indexes: %+v\n", locs)
 
-	head := 0
-	for {
-		if _, ok := world[head]; ok {
-			head++
-		} else {
-			break
-		}
-	}
-
-	for pointer > head {
-		world[head] = world[pointer]
-		delete(world, pointer)
-		for {
-			if _, ok := world[pointer]; !ok {
-				pointer--
-			} else {
+		for _, l := range locs {
+			available := freeSpace[l]
+			if l >= fileLoc {
+				break
+			}
+			if size <= available {
+				for i := 0; i < size; i++ {
+					world[l+i] = index
+					delete(world, fileLoc+i)
+				}
 				break
 			}
 		}
-		for {
-			if _, ok := world[head]; ok {
-				head++
-			} else {
-				break
-			}
-		}
+
+		// printWorld(world, max)
 	}
 
 	// fmt.Printf("%+v\n", world)
@@ -114,4 +143,16 @@ func main() {
 		sum += i * v
 	}
 	fmt.Printf("Sum: %d\n", sum)
+}
+
+func printWorld(w map[int]int, max int) {
+	for l := 0; l < max; l++ {
+		v, ok := w[l]
+		if ok {
+			fmt.Printf("%d", v)
+		} else {
+			fmt.Print(".")
+		}
+	}
+	fmt.Println()
 }
